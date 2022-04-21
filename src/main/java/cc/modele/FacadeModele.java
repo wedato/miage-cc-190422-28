@@ -2,12 +2,20 @@ package cc.modele;
 
 import cc.modele.data.*;
 import cc.modele.data.exceptions.*;
+import cc.utils.EmailUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 @Component
 public class FacadeModele {
+
+
+    private final List<Utilisateur> listeUtilisateurs = new ArrayList<>();
+    private final List<Projet> listeProjects = new ArrayList<>();
 
     /**
      * Permet d'enregistrer un utilisateur
@@ -21,7 +29,23 @@ public class FacadeModele {
 
     public int enregistrerUtilisateur(String login, String password)
             throws DonneeManquanteException, EmailDejaPrisException, EmailMalFormeException {
-        return 0;
+
+            if (login == null || password == null || login.isBlank() || password.isBlank())
+                throw new DonneeManquanteException();
+
+            if(!EmailUtils.verifier(login))
+                throw new EmailMalFormeException();
+
+            Optional<Utilisateur> optionalUtilisateur = listeUtilisateurs.
+                stream()
+                .filter(utilisateur1 -> utilisateur1.getLogin().equals(login))
+                .findAny();
+            if (optionalUtilisateur.isPresent())
+                throw new EmailDejaPrisException();
+            Utilisateur utilisateur = new Utilisateur(login,password);
+            listeUtilisateurs.add(utilisateur);
+            return utilisateur.getId();
+
     }
 
     /**
@@ -31,7 +55,14 @@ public class FacadeModele {
      * @throws UtilisateurInexistantException : Aucun utilisateur existe avec cet identifiant
      */
     public Utilisateur getUtilisateurByIntId(int id) throws UtilisateurInexistantException {
-        return null;
+        Optional<Utilisateur> optionalUtilisateur = listeUtilisateurs.stream()
+                .filter(utilisateur -> utilisateur.getId() == id)
+                .findAny();
+        if (optionalUtilisateur.isPresent())
+            return optionalUtilisateur.get();
+
+        throw new UtilisateurInexistantException();
+
     }
 
 
@@ -42,7 +73,15 @@ public class FacadeModele {
      * @throws UtilisateurInexistantException : Aucun utilisateur existe avec cet email
      */
     public Utilisateur getUtilisateurByEmail(String login) throws UtilisateurInexistantException {
-        return null;
+
+        Optional<Utilisateur> optionalUtilisateur = listeUtilisateurs.stream()
+                .filter(utilisateur -> utilisateur.getLogin().equals(login))
+                .findAny();
+
+        if (optionalUtilisateur.isPresent())
+            return optionalUtilisateur.get();
+
+        throw new UtilisateurInexistantException();
 
     }
 
@@ -53,6 +92,8 @@ public class FacadeModele {
      */
 
     public void reInitFacade(){
+        listeUtilisateurs.clear();
+        Utilisateur.resetID();
     }
 
     /**
@@ -60,8 +101,7 @@ public class FacadeModele {
      * @return
      */
     public Collection<Utilisateur> getAllUtilisateurs() {
-
-        return null;
+        return listeUtilisateurs;
     }
 
     /**
@@ -74,7 +114,13 @@ public class FacadeModele {
      * @throws NbGroupesIncorrectException : le nombre de groupes n'est pas > 0
      */
     public Projet creationProjet(Utilisateur utilisateur,String nomProjet, int nbGroupes) throws DonneeManquanteException, NbGroupesIncorrectException {
-        return null;
+       if (utilisateur == null || nomProjet == null || nomProjet.isBlank())
+           throw new DonneeManquanteException();
+       if (nbGroupes <0)
+           throw new NbGroupesIncorrectException();
+       Projet projet = new Projet(nomProjet,utilisateur,nbGroupes);
+       listeProjects.add(projet);
+       return projet;
     }
 
     /**
@@ -84,7 +130,13 @@ public class FacadeModele {
      * @throws ProjetInexistantException
      */
     public Projet getProjetById(String idProjet) throws ProjetInexistantException {
-        return null;
+        Optional<Projet> optionalProjet = listeProjects.stream()
+                .filter(projet -> projet.getIdProjet().equals(idProjet))
+                .findAny();
+
+        if (optionalProjet.isPresent())
+            return optionalProjet.get();
+        throw new ProjetInexistantException();
     }
 
 
@@ -101,6 +153,9 @@ public class FacadeModele {
      */
     public void rejoindreGroupe(Utilisateur utilisateur, String idProjet,int idGroupe) throws ProjetInexistantException, MauvaisIdentifiantDeGroupeException, EtudiantDejaDansUnGroupeException {
 
+        Projet projet = getProjetById(idProjet);
+        projet.rejoindreGroupe(utilisateur,idGroupe);
+
     }
 
     /**
@@ -115,6 +170,8 @@ public class FacadeModele {
      */
     public void quitterGroupe(Utilisateur utilisateur, String idProjet, int idGroupe) throws ProjetInexistantException, MauvaisIdentifiantDeGroupeException, EtudiantPasDansLeGroupeException {
 
+        Projet projet = getProjetById(idProjet);
+        projet.quitterGroupe(utilisateur, idGroupe);
     }
 
 
@@ -125,6 +182,6 @@ public class FacadeModele {
      * @throws ProjetInexistantException
      */
     public Groupe[] getGroupeByIdProjet(String idProjet) throws ProjetInexistantException {
-        return new Groupe[0];
+        return getProjetById(idProjet).getGroupes();
     }
 }
