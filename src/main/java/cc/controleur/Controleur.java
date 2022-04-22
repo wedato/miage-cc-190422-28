@@ -11,7 +11,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 
 @RestController
@@ -109,11 +111,13 @@ public class Controleur {
     }
 
     @GetMapping("/projets/{idprojet}/groupes")
-    public ResponseEntity<Groupe[]> findGroupesByProject(@PathVariable String idproject){
+    public ResponseEntity<List<Groupe>> findGroupesByProject(@PathVariable String idprojet){
 
         try {
-            return ResponseEntity.ok(facadeModele.getProjetById(idproject)
-                    .getGroupes());
+            Groupe[] groupes = facadeModele.getGroupeByIdProjet(idprojet);
+            List<Groupe> listeGroupes = Arrays.stream(groupes).toList();
+            return ResponseEntity.ok().body(listeGroupes);
+
         } catch (ProjetInexistantException e) {
             return ResponseEntity.notFound().build();
         }
