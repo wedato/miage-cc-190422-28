@@ -15,7 +15,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Autowired
     private FacadeModele facadeModele;
     @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {

@@ -3,22 +3,16 @@ package cc.controleur;
 import cc.modele.*;
 import cc.modele.data.*;
 import cc.modele.data.exceptions.*;
-import cc.utils.EmailUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Objects;
 
 
 @RestController
@@ -27,6 +21,8 @@ public class Controleur {
 
     @Autowired
     FacadeModele facadeModele;
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
 
 
     @PostMapping("/utilisateurs")
@@ -45,6 +41,37 @@ public class Controleur {
             return ResponseEntity.status(409).build();
         }
 
+    }
+
+    @GetMapping("/utilisateurs/{idUtilisateur}")
+    public ResponseEntity<Utilisateur> findUtilisateurById( Principal principal ,@PathVariable int idUtilisateur)  {
+
+
+        try {
+
+            String mail = principal.getName();
+            Utilisateur utilisateurCo = facadeModele.getUtilisateurByEmail(mail);
+            Utilisateur utilisateurWanted = facadeModele.getUtilisateurByIntId(idUtilisateur);
+
+            // si c'est un prof osef il a a acces à tout
+            if (utilisateurCo.getRoles()[0].equals("PROFESSEUR")){
+                return ResponseEntity.ok(utilisateurWanted);
+            }
+            if (!utilisateurCo.equals(utilisateurWanted))
+                return ResponseEntity.status(403).build();
+            return ResponseEntity.ok(utilisateurWanted);
+
+        } catch (UtilisateurInexistantException e) {
+            return ResponseEntity.status(404).build();
+        }
+
+
+    }
+
+    @GetMapping("/utilisateurs")
+    public ResponseEntity<Collection<Utilisateur>> getAll(){
+
+        return ResponseEntity.ok(facadeModele.getAllUtilisateurs());
     }
 
 

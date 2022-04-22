@@ -3,6 +3,7 @@ package cc.modele;
 import cc.modele.data.*;
 import cc.modele.data.exceptions.*;
 import cc.utils.EmailUtils;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -16,6 +17,8 @@ public class FacadeModele {
 
     private final List<Utilisateur> listeUtilisateurs = new ArrayList<>();
     private final List<Projet> listeProjects = new ArrayList<>();
+
+
 
     /**
      * Permet d'enregistrer un utilisateur
