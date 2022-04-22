@@ -24,8 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
              utilisateur = facadeModele.getUtilisateurByEmail(email);
             return User.builder()
                     .username(utilisateur.getLogin())
-                    .password(bCryptPasswordEncoder
-                            .encode(utilisateur.getPassword()))
+                    .password(utilisateur.getPassword())
                     .roles(utilisateur.getRoles())
                     .build();
         } catch (UtilisateurInexistantException e) {

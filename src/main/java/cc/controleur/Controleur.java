@@ -11,7 +11,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.security.Principal;
-import java.util.Arrays;
 import java.util.Collection;
 
 
@@ -26,7 +25,7 @@ public class Controleur {
 
 
     @PostMapping("/utilisateurs")
-    public ResponseEntity<UtilisateurDTO> register(@RequestBody UtilisateurDTO utilisateurDTO){
+    public ResponseEntity<UtilisateurDTO> register(@RequestBody UtilisateurDTO utilisateurDTO) {
         try {
             int utilisateur = facadeModele.enregistrerUtilisateur(utilisateurDTO.getLogin(), utilisateurDTO.getPassword());
             URI nextLocation = ServletUriComponentsBuilder.fromCurrentRequestUri()
@@ -44,7 +43,7 @@ public class Controleur {
     }
 
     @GetMapping("/utilisateurs/{idUtilisateur}")
-    public ResponseEntity<Utilisateur> findUtilisateurById( Principal principal ,@PathVariable int idUtilisateur)  {
+    public ResponseEntity<Utilisateur> findUtilisateurById(Principal principal, @PathVariable int idUtilisateur) {
 
 
         try {
@@ -54,7 +53,7 @@ public class Controleur {
             Utilisateur utilisateurWanted = facadeModele.getUtilisateurByIntId(idUtilisateur);
 
             // si c'est un prof osef il a a acces à tout
-            if (utilisateurCo.getRoles()[0].equals("PROFESSEUR")){
+            if (utilisateurCo.getRoles()[0].equals("PROFESSEUR")) {
                 return ResponseEntity.ok(utilisateurWanted);
             }
             if (!utilisateurCo.equals(utilisateurWanted))
@@ -69,10 +68,62 @@ public class Controleur {
     }
 
     @GetMapping("/utilisateurs")
-    public ResponseEntity<Collection<Utilisateur>> getAll(){
+    public ResponseEntity<Collection<Utilisateur>> getAll() {
 
         return ResponseEntity.ok(facadeModele.getAllUtilisateurs());
     }
+
+    @PostMapping("/projets")
+    public ResponseEntity<Projet> creerProjet(Principal principal, @RequestParam String nomProjet, @RequestParam int nbGroupes) {
+
+
+        try {
+            Utilisateur userCo = facadeModele.getUtilisateurByEmail(principal.getName());
+            Projet projet = facadeModele.creationProjet(userCo, nomProjet, nbGroupes);
+            URI nextLocation = ServletUriComponentsBuilder.fromCurrentRequestUri()
+                    .path("/{id}")
+                    .buildAndExpand(projet.getIdProjet())
+                    .toUri();
+            return ResponseEntity.created(nextLocation).body(projet);
+
+        } catch (UtilisateurInexistantException e) {
+            return ResponseEntity.notFound().build();
+        } catch (DonneeManquanteException | NbGroupesIncorrectException e) {
+            return ResponseEntity.status(406).build();
+        }
+
+    }
+
+    @GetMapping("/projets/{idprojet}")
+    public ResponseEntity<Projet> findProjetById( @PathVariable String idprojet) {
+
+
+        try {
+            return ResponseEntity.ok(facadeModele.getProjetById(idprojet));
+
+        } catch (ProjetInexistantException e) {
+            return ResponseEntity.notFound().build();
+        }
+
+
+    }
+
+    @GetMapping("/projets/{idprojet}/groupes")
+    public ResponseEntity<Groupe[]> findGroupesByProject(@PathVariable String idproject){
+
+        try {
+            return ResponseEntity.ok(facadeModele.getProjetById(idproject)
+                    .getGroupes());
+        } catch (ProjetInexistantException e) {
+            return ResponseEntity.notFound().build();
+        }
+
+    }
+
+
+
+
+
 
 
 }
