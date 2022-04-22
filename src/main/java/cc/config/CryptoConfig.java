@@ -34,8 +34,10 @@ public class CryptoConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST,"/api/gestionprojets/projets").hasRole("PROFESSEUR")
                 .antMatchers(HttpMethod.GET,"/api/gestionprojets/projets/*").authenticated()
                 .antMatchers(HttpMethod.GET,"/api/gestionprojets/projets/*/groupes").authenticated()
+                .antMatchers(HttpMethod.PUT,"/api/gestionprojets/projets/*/groupes/*").hasRole("ETUDIANT")
                 .antMatchers(HttpMethod.GET,"/api/gestionprojets/utilisateurs").hasRole("PROFESSEUR")
                 .antMatchers(HttpMethod.GET,"/api/gestionprojets/utilisateurs/*").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/api/gestionprojets/projets/{idProjet}/groupes/{idGroupe}").hasRole("ETUDIANT")
                 .and().httpBasic()
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }

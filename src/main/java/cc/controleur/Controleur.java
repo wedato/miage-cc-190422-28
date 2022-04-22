@@ -123,6 +123,33 @@ public class Controleur {
         }
 
     }
+@PutMapping("/projets/{idprojet}/groupes/{idGroupe}")
+    public ResponseEntity rejoindreGroupe(Principal principal,@PathVariable String idprojet, @PathVariable int idGroupe){
+
+    try {
+        Utilisateur utilisateurCo = facadeModele.getUtilisateurByEmail(principal.getName());
+        facadeModele.rejoindreGroupe(utilisateurCo,idprojet,idGroupe);
+        return ResponseEntity.status(202).build();
+    } catch (UtilisateurInexistantException | ProjetInexistantException | MauvaisIdentifiantDeGroupeException e) {
+        return ResponseEntity.notFound().build();
+    } catch (EtudiantDejaDansUnGroupeException e) {
+        return ResponseEntity.status(409).build();
+    }
+
+}
+
+    @DeleteMapping("/gestionprojets/projets/{idProjet}/groupes/{idGroupe}")
+    public ResponseEntity<String> quitterGroupe(Principal principal, @PathVariable String idProjet, @PathVariable int idGroupe) {
+        try {
+            Utilisateur utilisateur = facadeModele.getUtilisateurByEmail(principal.getName());
+            facadeModele.quitterGroupe(utilisateur, idProjet, idGroupe);
+            return ResponseEntity.status(202).build();
+        } catch (UtilisateurInexistantException | MauvaisIdentifiantDeGroupeException | ProjetInexistantException e) {
+            return ResponseEntity.status(404).build();
+        } catch (EtudiantPasDansLeGroupeException e) {
+            return ResponseEntity.status(406).build();
+        }
+    }
 
 
 
